@@ -42,7 +42,7 @@ app.use('/auth', authRoutes);
 
 // Protected Routes
 // app.use('/users', authenticateJWT, userRoutes);
-// app.use('/recipes', authenticateJWT, recipeRoutes);
+app.use('/recipes',recipeRoutes);
 // app.use('/admin', authenticateJWT, adminRoutes); 
 
 // Error Handling Middleware (optional)

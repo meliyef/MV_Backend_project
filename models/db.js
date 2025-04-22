@@ -1,8 +1,10 @@
-// models/db.js
-const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./database.sqlite', (err) => {
-  if (err) console.error('DB Error:', err);
-  else console.log('Connected to SQLite DB');
+// db.js
+const { Sequelize } = require('sequelize');
+
+// Create an instance of Sequelize for SQLite
+const sequelize = new Sequelize({
+  dialect: 'sqlite',
+  storage: './database.sqlite', // Path to your SQLite database
 });
 
-module.exports = db;
+module.exports = sequelize;
