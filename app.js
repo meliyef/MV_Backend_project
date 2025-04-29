@@ -1,21 +1,21 @@
-// app.js
 require('dotenv').config(); // Load env variables
 
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 
+const recipeRoutes = require('./routes/recipes');
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
-const recipeRoutes = require('./routes/recipes');
-const adminRoutes = require('./routes/admin');
 
-const authenticateJWT = require('./middleware/authMiddleware');
+const { authenticateJWT } = require('./middleware/authMiddleware'); // Correct import
 
 const app = express();
 
 // Middlewares
 app.use(cors());
 app.use(express.json()); // for parsing application/json
+
 const {
   AUTH0_SECRET = 'a long, randomly-generated string stored in env', // generate one by using: `openssl rand -base64 32`
   AUTH0_AUDIENCE = 'http://localhost:3000',
@@ -37,13 +37,12 @@ app.get('/', (req, res) => {
   res.send('RecipeShare API is running successfully!');
 });
 
-// Public Routes
-app.use('/auth', authRoutes);
+// Public Routes (auth routes)
+app.use('/auth', authRoutes);  // No authenticateJWT here, since auth routes should be accessible to everyone
 
-// Protected Routes
-// app.use('/users', authenticateJWT, userRoutes);
-app.use('/recipes',recipeRoutes);
-// app.use('/admin', authenticateJWT, adminRoutes); 
+// Protected Routes (requires JWT token)
+app.use('/recipes', authenticateJWT, recipeRoutes);
+app.use('/users', authenticateJWT, userRoutes);
 
 // Error Handling Middleware (optional)
 app.use((err, req, res, next) => {
