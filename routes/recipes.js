@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { Recipe } = require('../models'); 
-const ensureAuthenticated = require('../middleware/authMiddleware'); // Middleware for protected routes
+const { authenticateJWT,authorizeRoles } = require('../middleware/authMiddleware'); // Middleware for protected routes
 
 // Get all recipes
 router.get('/', async (req, res) => {
@@ -27,7 +27,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new recipe (protected route)
-router.post('/', ensureAuthenticated, async (req, res) => {
+router.post('/', authenticateJWT,authorizeRoles('user', 'admin'), async (req, res) => {
   try {
     const { title, description, ingredients, instructions } = req.body;
     const newRecipe = await Recipe.create({
@@ -35,7 +35,7 @@ router.post('/', ensureAuthenticated, async (req, res) => {
       description,
       ingredients: JSON.stringify(ingredients), // Convert ingredients to JSON
       instructions,
-      UserId: req.oidc.user.id, // Assuming `req.oidc.user.id` contains the authenticated user's ID
+      UserId: req.user.id, 
     });
     res.status(201).json(newRecipe);
   } catch (error) {
@@ -44,14 +44,14 @@ router.post('/', ensureAuthenticated, async (req, res) => {
 });
 
 // Update a recipe by ID (protected route)
-router.put('/:id', ensureAuthenticated, async (req, res) => {
+router.put('/:id', authenticateJWT , authorizeRoles('admin'), async (req, res) => {
   try {
     const { title, description, ingredients, instructions } = req.body;
     const recipe = await Recipe.findByPk(req.params.id);
     if (!recipe) {
       return res.status(404).json({ message: 'Recipe not found' });
     }
-    if (recipe.UserId !== req.oidc.user.id) {
+    if (recipe.UserId !== req.user.id) {
       return res.status(403).json({ message: 'You are not authorized to update this recipe' });
     }
     await recipe.update({
@@ -67,13 +67,13 @@ router.put('/:id', ensureAuthenticated, async (req, res) => {
 });
 
 // Delete a recipe by ID (protected route)
-router.delete('/:id', ensureAuthenticated, async (req, res) => {
+router.delete('/:id', authenticateJWT,authorizeRoles('admin'), async (req, res) => {
   try {
     const recipe = await Recipe.findByPk(req.params.id);
     if (!recipe) {
       return res.status(404).json({ message: 'Recipe not found' });
     }
-    if (recipe.UserId !== req.oidc.user.id) {
+    if (recipe.UserId !== req.user.id) {
       return res.status(403).json({ message: 'You are not authorized to delete this recipe' });
     }
     await recipe.destroy();

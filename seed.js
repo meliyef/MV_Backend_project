@@ -1,16 +1,13 @@
-// seed.js
 const sequelize = require('./models/db');
 const User = require('./models/userModel');
 const Recipe = require('./models/recipeModel');
 
-// Sample fake data for users
 const users = [
-  { name: 'John Doe', email: 'john.doe@example.com', password: 'password123' },
-  { name: 'Jane Smith', email: 'jane.smith@example.com', password: 'password456' },
-  { name: 'Alice Johnson', email: 'alice.johnson@example.com', password: 'password789' },
+  { name: 'John Doe', email: 'john.doe@example.com', password: 'password123', role: 'admin' },
+  { name: 'Jane Smith', email: 'jane.smith@example.com', password: 'password456', role: 'user' },
+  { name: 'Alice Johnson', email: 'alice.johnson@example.com', password: 'password789', role: 'user' },
 ];
 
-// Sample fake data for recipes
 const recipes = [
   {
     title: 'Spaghetti Bolognese',
@@ -24,38 +21,29 @@ const recipes = [
     ingredients: ['Chicken breast', 'Romaine lettuce', 'Croutons', 'Caesar dressing', 'Parmesan cheese'],
     instructions: '1. Grill the chicken. 2. Toss lettuce with Caesar dressing. 3. Add grilled chicken, croutons, and parmesan cheese.',
   },
-  {
-    title: 'Vegetable Stir Fry',
-    description: 'A healthy, colorful stir fry with assorted vegetables and a soy-based sauce.',
-    ingredients: ['Broccoli', 'Carrots', 'Bell peppers', 'Soy sauce', 'Ginger', 'Garlic', 'Sesame oil'],
-    instructions: '1. Stir fry vegetables in sesame oil. 2. Add soy sauce, ginger, and garlic. 3. Serve over rice.',
-  },
 ];
 
-async function seedDatabase() {
+(async () => {
   try {
-    // Clear existing data
-await Recipe.destroy({ where: {} }); // Delete recipes first
-await User.destroy({ where: {} });   // Then delete users
+    // Sync the database (drop and recreate tables)
+    await sequelize.sync({ force: true });
+    console.log('Database synced!');
 
-// Create users
-const createdUsers = await User.bulkCreate(users, { returning: true });
+    // Seed the database
+    const createdUsers = await User.bulkCreate(users, { returning: true });
 
-// Associate recipes with users
-for (let i = 0; i < recipes.length; i++) {
-  const recipe = recipes[i];
-  const user = createdUsers[i % createdUsers.length]; // Assign recipes to users in a round-robin fashion
-  await Recipe.create({
-    ...recipe,
-    ingredients: JSON.stringify(recipe.ingredients), // Convert ingredients to JSON
-    UserId: user.id, // Associate with a user
-  });
-}
+    for (let i = 0; i < recipes.length; i++) {
+      const recipe = recipes[i];
+      const user = createdUsers[i % createdUsers.length]; // Assign recipes to users in a round-robin fashion
+      await Recipe.create({
+        ...recipe,
+        ingredients: JSON.stringify(recipe.ingredients), // Convert ingredients to JSON
+        UserId: user.id, // Associate with a user
+      });
+    }
 
-console.log('Database seeded successfully!');
+    console.log('Database seeded successfully!');
   } catch (error) {
     console.error('Error seeding the database:', error);
   }
-}
-
-seedDatabase();
+})();
