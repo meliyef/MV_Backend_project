@@ -1,5 +1,13 @@
 const jwt = require('jsonwebtoken');
 
+function isAdmin(req, res, next) {
+  // Check if the user is authenticated and has the 'admin' role
+  if (req.user && req.user.role === 'admin') {
+    return next(); // User is an admin, proceed to the next middleware or route handler
+  }
+  return res.status(403).json({ message: 'Access denied. Admins only.' });
+}
+
 // Middleware to authenticate JWT
 function authenticateJWT(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1]; // Extract token from "Authorization: Bearer <token>"
@@ -26,5 +34,5 @@ function authorizeRoles(...roles) {
   };
 }
 
-module.exports = { authenticateJWT, authorizeRoles };
+module.exports = { authenticateJWT, authorizeRoles,isAdmin };
   
