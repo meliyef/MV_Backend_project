@@ -101,7 +101,7 @@ router.post('/login', async (req, res) => {
 });
 
 // --- AUTH0 OAUTH LOGIN ---
-router.get('/login/oauth', passport.authenticate('oauth2'));
+router.get('/login/oauth', passport.authenticate('oauth2'));// Redirects the user to Auth0’s login page using Passport OAuth2Strategy.
 
 // --- AUTH0 CALLBACK ---
 router.get('/callback', async (req, res) => {
